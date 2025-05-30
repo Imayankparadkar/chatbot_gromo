@@ -1398,7 +1398,7 @@ async function sendMessage() {
         console.log('Sending message to Flask backend:', message);
         
         // Point to your Flask backend (adjust port if needed)
-        const response = await fetch('https://chatbot-gromo.onrender.com', {
+        const response = await fetch('https://chatbot-gromo.onrender.com/some-api', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -1438,7 +1438,7 @@ async function sendMessage() {
         
         let errorMessage = 'Sorry, I encountered an error: ';
         if (error.message.includes('Failed to fetch')) {
-            errorMessage += 'Cannot connect to Flask backend. Make sure your Flask server is running on http://localhost:5000';
+            errorMessage += 'Cannot connect to Flask backend. Make sure your Flask server is running on https://chatbot-gromo.onrender.com/some-api';
         } else if (error.message.includes('CORS')) {
             errorMessage += 'CORS error. Add flask-cors to your Flask backend.';
         } else {
@@ -1473,7 +1473,7 @@ async function sendMessageToCustomEndpoint() {
 
     try {
         // For Flask/Django backend
-        const response = await fetch('http://localhost:5000/chat', {
+        const response = await fetch('https://chatbot-gromo.onrender.com/some-api', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -1569,7 +1569,7 @@ function handleBackendResponse(response, data) {
 const BACKEND_CONFIG = {
     // Local development
     development: {
-        baseUrl: 'http://localhost:5000',
+        baseUrl: 'https://chatbot-gromo.onrender.com/some-api',
         chatEndpoint: '/api/chat',
         headers: {
             'Content-Type': 'application/json'
