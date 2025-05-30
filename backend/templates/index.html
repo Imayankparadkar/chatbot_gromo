@@ -1,0 +1,1836 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gromo Coach - Your AI Financial Advisor</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --bg-primary: #0f0f23;
+            --bg-secondary: #1a1a2e;
+            --bg-tertiary: #16213e;
+            --bg-card: #1e2139;
+            --accent-purple: #6c5ce7;
+            --accent-pink: #fd79a8;
+            --accent-blue: #74b9ff;
+            --accent-green: #00b894;
+            --accent-orange: #fdcb6e;
+            --text-primary: #ffffff;
+            --text-secondary: #a0a0a0;
+            --text-muted: #6b7280;
+            --border: rgba(255, 255, 255, 0.1);
+            --shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            --glass-bg: rgba(255, 255, 255, 0.05);
+            --glass-border: rgba(255, 255, 255, 0.1);
+        }
+
+        body {
+            font-family: 'Inter', 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, var(--bg-primary) 0%, var(--bg-secondary) 50%, var(--bg-tertiary) 100%);
+            color: var(--text-primary);
+            min-height: 100vh;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        /* Animated background */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: 
+                radial-gradient(circle at 20% 50%, rgba(108, 92, 231, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 80% 20%, rgba(253, 121, 168, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 40% 80%, rgba(116, 185, 255, 0.1) 0%, transparent 50%);
+            z-index: -1;
+            animation: backgroundShift 20s ease-in-out infinite;
+        }
+
+        @keyframes backgroundShift {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.8; }
+        }
+
+        .container {
+            display: flex;
+            height: 100vh;
+            position: relative;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: 280px;
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            border-right: 1px solid var(--glass-border);
+            padding: 24px;
+            display: flex;
+            flex-direction: column;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .sidebar::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, rgba(108, 92, 231, 0.05), rgba(253, 121, 168, 0.05));
+            z-index: -1;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            margin-bottom: 40px;
+            padding: 16px;
+            background: var(--glass-bg);
+            border-radius: 20px;
+            border: 1px solid var(--glass-border);
+        }
+
+        .logo-icon {
+            width: 48px;
+            height: 48px;
+            background: linear-gradient(135deg, var(--accent-purple), var(--accent-pink));
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            animation: logoGlow 2s ease-in-out infinite alternate;
+        }
+
+        @keyframes logoGlow {
+            0% { box-shadow: 0 0 20px rgba(108, 92, 231, 0.3); }
+            100% { box-shadow: 0 0 30px rgba(253, 121, 168, 0.5); }
+        }
+
+        .logo-text {
+            font-size: 24px;
+            font-weight: 800;
+            background: linear-gradient(135deg, var(--accent-purple), var(--accent-pink));
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            padding: 16px 20px;
+            margin: 6px 0;
+            border-radius: 16px;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            color: var(--text-secondary);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .nav-item::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+            transition: left 0.5s;
+        }
+
+        .nav-item:hover::before {
+            left: 100%;
+        }
+
+        .nav-item:hover, .nav-item.active {
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            color: var(--text-primary);
+            transform: translateX(8px);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+        }
+
+        .nav-item.active {
+            background: linear-gradient(135deg, rgba(108, 92, 231, 0.2), rgba(253, 121, 168, 0.2));
+            border: 1px solid rgba(108, 92, 231, 0.3);
+        }
+
+        .nav-item i {
+            width: 24px;
+            text-align: center;
+            font-size: 18px;
+        }
+
+        /* Main Content */
+        .main-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+        }
+
+        .header {
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--glass-border);
+            padding: 24px 32px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: relative;
+        }
+
+        .header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: linear-gradient(90deg, var(--accent-purple), var(--accent-pink), var(--accent-blue));
+        }
+
+        .header-left h1 {
+            font-size: 32px;
+            font-weight: 800;
+            margin-bottom: 8px;
+            background: linear-gradient(135deg, var(--text-primary), var(--text-secondary));
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .header-left p {
+            color: var(--text-secondary);
+            font-size: 16px;
+        }
+
+        .header-right {
+            display: flex;
+            gap: 16px;
+            align-items: center;
+        }
+
+        .language-selector {
+            background: var(--accent-pink);
+            border: 1px solid var(--glass-border);
+            border-radius: 12px;
+            padding: 12px 16px;
+            color: var(--text-primary);
+            cursor: pointer;
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+        }
+
+        .language-selector:hover {
+            border-color: var(--accent-purple);
+            box-shadow: 0 0 20px rgba(108, 92, 231, 0.3);
+        }
+
+        .content-area {
+            flex: 1;
+            padding: 32px;
+            overflow-y: auto;
+            position: relative;
+        }
+
+        /* Dashboard Cards */
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 24px;
+            margin-bottom: 40px;
+        }
+
+        .feature-card {
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            border-radius: 24px;
+            padding: 32px;
+            cursor: pointer;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 24px;
+            margin-bottom: 40px;
+        }
+
+        .feature-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, var(--accent-purple), var(--accent-pink));
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .feature-card:hover::before {
+            opacity: 1;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-8px) scale(1.02);
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
+            border-color: var(--accent-purple);
+        }
+
+        .feature-card:nth-child(1):hover {
+            box-shadow: 0 20px 60px rgba(253, 121, 168, 0.3);
+        }
+
+        .feature-card:nth-child(2):hover {
+            box-shadow: 0 20px 60px rgba(0, 184, 148, 0.3);
+        }
+
+        .feature-card:nth-child(3):hover {
+            box-shadow: 0 20px 60px rgba(108, 92, 231, 0.3);
+        }
+
+        .feature-card:nth-child(4):hover {
+            box-shadow: 0 20px 60px rgba(116, 185, 255, 0.3);
+        }
+
+        .feature-icon {
+            width: 72px;
+            height: 72px;
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 32px;
+            margin-bottom: 24px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .feature-icon::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: inherit;
+            opacity: 0.2;
+            border-radius: 20px;
+        }
+
+        .feature-title {
+            font-size: 20px;
+            font-weight: 700;
+            margin-bottom: 12px;
+            color: var(--text-primary);
+        }
+
+        .feature-desc {
+            color: var(--text-secondary);
+            font-size: 15px;
+            line-height: 1.6;
+        }
+
+        /* Chat Interface */
+        .chat-container {
+            display: none;
+            height: 100%;
+            flex-direction: column;
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            border-radius: 24px;
+            border: 1px solid var(--glass-border);
+            overflow: hidden;
+        }
+
+        .chat-messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 24px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            position: relative;
+        }
+
+        .message {
+            display: flex;
+            gap: 16px;
+            max-width: 85%;
+            animation: messageSlideIn 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        @keyframes messageSlideIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .message.user {
+            margin-left: auto;
+            flex-direction: row-reverse;
+        }
+
+        .message-avatar {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            flex-shrink: 0;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .message.user .message-avatar {
+            background: linear-gradient(135deg, var(--accent-purple), var(--accent-pink));
+            box-shadow: 0 8px 32px rgba(108, 92, 231, 0.3);
+        }
+
+        .message.assistant .message-avatar {
+            background: linear-gradient(135deg, var(--accent-blue), var(--accent-green));
+            box-shadow: 0 8px 32px rgba(116, 185, 255, 0.3);
+        }
+
+        .message-content {
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            border-radius: 20px;
+            padding: 20px;
+            position: relative;
+            max-width: 100%;
+        }
+
+        .message.user .message-content {
+            background: linear-gradient(135deg, rgba(108, 92, 231, 0.2), rgba(253, 121, 168, 0.2));
+            border: 1px solid rgba(108, 92, 231, 0.3);
+        }
+
+        .message-text {
+            white-space: pre-wrap;
+            line-height: 1.7;
+            font-size: 15px;
+        }
+
+        .chat-input-container {
+            padding: 24px;
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            border-top: 1px solid var(--glass-border);
+        }
+
+        .chat-input-wrapper {
+            display: flex;
+            gap: 16px;
+            align-items: flex-end;
+            background: var(--bg-card);
+            border-radius: 20px;
+            padding: 6px;
+            border: 1px solid var(--glass-border);
+        }
+
+        .chat-input {
+            flex: 1;
+            background: transparent;
+            border: none;
+            padding: 16px 20px;
+            color: var(--text-primary);
+            resize: none;
+            min-height: 24px;
+            max-height: 120px;
+            font-family: inherit;
+            font-size: 15px;
+        }
+
+        .chat-input:focus {
+            outline: none;
+        }
+
+        .chat-input::placeholder {
+            color: var(--text-muted);
+        }
+
+        .input-actions {
+            display: flex;
+            gap: 8px;
+            padding: 8px;
+        }
+
+        .action-btn {
+            width: 48px;
+            height: 48px;
+            border: none;
+            border-radius: 16px;
+            background: var(--glass-bg);
+            color: var(--text-primary);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            font-size: 16px;
+            border: 1px solid var(--glass-border);
+        }
+
+        .action-btn:hover {
+            background: var(--accent-purple);
+            transform: translateY(-2px) scale(1.05);
+            box-shadow: 0 8px 25px rgba(108, 92, 231, 0.4);
+        }
+
+        .send-btn {
+            background: linear-gradient(135deg, var(--accent-purple), var(--accent-pink));
+            border: none;
+        }
+
+        .send-btn:hover {
+            background: linear-gradient(135deg, var(--accent-pink), var(--accent-purple));
+            box-shadow: 0 8px 25px rgba(253, 121, 168, 0.4);
+        }
+
+        /* Calculator Interface */
+        .calculator-container {
+            display: none;
+            grid-template-columns: 1fr 1fr;
+            gap: 32px;
+            height: 100%;
+        }
+
+        .calculator-form, .calculator-result {
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            border-radius: 24px;
+            padding: 32px;
+        }
+
+        .form-group {
+            margin-bottom: 24px;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 12px;
+            font-weight: 600;
+            color: var(--text-primary);
+            font-size: 15px;
+        }
+
+        .form-input {
+            width: 100%;
+            background: var(--bg-card);
+            border: 1px solid var(--glass-border);
+            border-radius: 16px;
+            padding: 16px;
+            color: var(--text-primary);
+            font-size: 16px;
+            transition: all 0.3s ease;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: var(--accent-purple);
+            box-shadow: 0 0 20px rgba(108, 92, 231, 0.2);
+        }
+
+        .calculate-btn {
+            width: 100%;
+            background: linear-gradient(135deg, var(--accent-purple), var(--accent-pink));
+            border: none;
+            border-radius: 16px;
+            padding: 18px;
+            color: white;
+            font-size: 17px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .calculate-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 35px rgba(108, 92, 231, 0.4);
+        }
+
+        .result-card {
+            background: var(--bg-card);
+            border-radius: 16px;
+            padding: 24px;
+            text-align: center;
+            margin-bottom: 16px;
+            border: 1px solid var(--glass-border);
+        }
+
+        .result-value {
+            font-size: 36px;
+            font-weight: 800;
+            margin-bottom: 8px;
+            background: linear-gradient(135deg, var(--accent-green), var(--accent-blue));
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .result-label {
+            color: var(--text-secondary);
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        /* Investment Tips */
+        .tips-container {
+            display: none;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 24px;
+        }
+
+        .tip-card {
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            border-radius: 24px;
+            padding: 32px;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .tip-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        }
+
+        .tip-icon {
+            width: 64px;
+            height: 64px;
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            margin-bottom: 20px;
+            background: linear-gradient(135deg, var(--accent-green), var(--accent-blue));
+        }
+
+        .tip-title {
+            font-size: 20px;
+            font-weight: 700;
+            margin-bottom: 16px;
+            color: var(--text-primary);
+        }
+
+        .tip-content {
+            color: var(--text-secondary);
+            line-height: 1.7;
+            font-size: 15px;
+        }
+
+        /* Upload Area */
+        .upload-area {
+            border: 2px dashed var(--glass-border);
+            border-radius: 24px;
+            padding: 48px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+        }
+
+        .upload-area:hover, .upload-area.dragover {
+            border-color: var(--accent-purple);
+            background: rgba(108, 92, 231, 0.1);
+            transform: scale(1.02);
+        }
+
+        /* Loading Animation */
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: var(--accent-purple);
+            animation: spin 1s ease-in-out infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Typing Indicator */
+        .typing-dots {
+            display: flex;
+            gap: 4px;
+            align-items: center;
+        }
+
+        .typing-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--accent-purple);
+            animation: typingDot 1.4s ease-in-out infinite;
+        }
+
+        .typing-dot:nth-child(1) { animation-delay: 0s; }
+        .typing-dot:nth-child(2) { animation-delay: 0.2s; }
+        .typing-dot:nth-child(3) { animation-delay: 0.4s; }
+
+        @keyframes typingDot {
+            0%, 60%, 100% { transform: translateY(0); opacity: 0.5; }
+            30% { transform: translateY(-10px); opacity: 1; }
+        }
+
+        /* Speech Recognition */
+        .recording {
+            background: linear-gradient(135deg, #ff6b6b, #ff8e8e) !important;
+            animation: recordPulse 1s infinite;
+        }
+
+        @keyframes recordPulse {
+            0% { box-shadow: 0 0 0 0 rgba(255, 107, 107, 0.7); }
+            70% { box-shadow: 0 0 0 10px rgba(255, 107, 107, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(255, 107, 107, 0); }
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .sidebar {
+                transform: translateX(-100%);
+                position: fixed;
+                z-index: 1000;
+                height: 100vh;
+            }
+
+            .sidebar.open {
+                transform: translateX(0);
+            }
+
+            .calculator-container {
+                grid-template-columns: 1fr;
+            }
+
+            .dashboard-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .content-area {
+                padding: 20px;
+            }
+
+            .header {
+                padding: 20px;
+            }
+        }
+
+        /* Hidden Elements */
+        .hidden {
+            display: none !important;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Sidebar -->
+        <div class="sidebar" id="sidebar">
+            <div class="logo">
+                <div class="logo-icon">
+                    <i class="fas fa-brain"></i>
+                </div>
+                <div class="logo-text">Gromo Coach</div>
+            </div>
+
+            <nav class="nav-menu">
+                <div class="nav-item active" data-section="dashboard">
+                    <i class="fas fa-home"></i>
+                    <span data-translate="dashboard">Dashboard</span>
+                </div>
+                <div class="nav-item" data-section="chat">
+                    <i class="fas fa-comments"></i>
+                    <span data-translate="chat">AI Chat</span>
+                </div>
+                <div class="nav-item" data-section="calculators">
+                    <i class="fas fa-calculator"></i>
+                    <span data-translate="calculators">Calculators</span>
+                </div>
+                <div class="nav-item" data-section="tips">
+                    <i class="fas fa-lightbulb"></i>
+                    <span data-translate="tips">Investment Tips</span>
+                </div>
+                <div class="nav-item" data-section="analysis">
+                    <i class="fas fa-chart-bar"></i>
+                    <span data-translate="analysis">Data Analysis</span>
+                </div>
+                <div class="nav-item" data-section="settings">
+                    <i class="fas fa-cog"></i>
+                    <span data-translate="settings">Settings</span>
+                </div>
+            </nav>
+        </div>
+
+        <!-- Main Content -->
+        <div class="main-content">
+            <header class="header">
+                <div class="header-left">
+                    <h1 data-translate="welcome">Hi, I'm Your AI Coach</h1>
+                    <p data-translate="subtitle">Tell me your financial goal, and get complete learning plans.</p>
+                </div>
+                <div class="header-right">
+                    <select class="language-selector" id="languageSelector">
+                        <option value="en">English</option>
+                        <option value="hi">हिंदी</option>
+                        <option value="bn">বাংলা</option>
+                        <option value="te">తెలుగు</option>
+                        <option value="ta">தமிழ்</option>
+                        <option value="mr">मराठी</option>
+                        <option value="gu">ગુજરાતી</option>
+                        <option value="kn">ಕನ್ನಡ</option>
+                    </select>
+                    <button class="action-btn" onclick="toggleSidebar()">
+                        <i class="fas fa-bars"></i>
+                    </button>
+                </div>
+            </header>
+
+            <div class="content-area">
+                <!-- Dashboard Section -->
+                <div id="dashboard-section" class="section">
+                    <div class="dashboard-grid">
+                        <div class="feature-card" onclick="switchSection('chat')">
+                            <div class="feature-icon" style="background: linear-gradient(135deg, rgba(253, 121, 168, 0.2), rgba(253, 121, 168, 0.4)); color: #fd79a8;">
+                                <i class="fas fa-robot"></i>
+                            </div>
+                            <div class="feature-title" data-translate="ai_chat">AI Financial Advisor</div>
+                            <div class="feature-desc" data-translate="ai_chat_desc">Get personalized financial advice from our intelligent AI coach</div>
+                        </div>
+
+                        <div class="feature-card" onclick="switchSection('calculators')">
+                            <div class="feature-icon" style="background: linear-gradient(135deg, rgba(0, 184, 148, 0.2), rgba(0, 184, 148, 0.4)); color: #00b894;">
+                                <i class="fas fa-calculator"></i>
+                            </div>
+                            <div class="feature-title" data-translate="calculators">Smart Calculators</div>
+                            <div class="feature-desc" data-translate="calculators_desc">Calculate SIP, EMI, tax savings and more with precision</div>
+                        </div>
+
+                        <div class="feature-card" onclick="switchSection('tips')">
+                            <div class="feature-icon" style="background: linear-gradient(135deg, rgba(108, 92, 231, 0.2), rgba(108, 92, 231, 0.4)); color: #6c5ce7;">
+                                <i class="fas fa-lightbulb"></i>
+                            </div>
+                            <div class="feature-title" data-translate="investment_tips">Investment Insights</div>
+                            <div class="feature-desc" data-translate="tips_desc">Expert tips and strategies for smart investing</div>
+                        </div>
+
+                        <div class="feature-card" onclick="switchSection('analysis')">
+                            <div class="feature-icon" style="background: linear-gradient(135deg, rgba(116, 185, 255, 0.2), rgba(116, 185, 255, 0.4)); color: #74b9ff;">
+                                <i class="fas fa-chart-pie"></i>
+                            </div>
+                            <div class="feature-title" data-translate="data_analysis">Portfolio Analysis</div>
+                            <div class="feature-desc" data-translate="analysis_desc">Upload and analyze your financial data with AI</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Chat Section -->
+                <div id="chat-section" class
+                ="section hidden">
+                    <div class="chat-container">
+                        <div class="chat-messages" id="chatMessages">
+                            <div class="message assistant">
+                                <div class="message-avatar">
+                                    <i class="fas fa-robot"></i>
+                                </div>
+                                <div class="message-content">
+                                    <div class="message-text" data-translate="welcome_message">Hello! I'm your AI financial coach. How can I help you achieve your financial goals today?</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="chat-input-container">
+                            <div class="chat-input-wrapper">
+                                <textarea class="chat-input" id="chatInput" placeholder="Type your financial question here..." rows="1"></textarea>
+                                <div class="input-actions">
+                                    <button class="action-btn" id="voiceBtn" title="Voice Input">
+                                        <i class="fas fa-microphone"></i>
+                                    </button>
+                                    <button class="action-btn" id="attachBtn" title="Attach File">
+                                        <i class="fas fa-paperclip"></i>
+                                    </button>
+                                    <button class="action-btn send-btn" id="sendBtn" title="Send Message">
+                                        <i class="fas fa-paper-plane"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Calculators Section -->
+                <div id="calculators-section" class="section hidden">
+                    <div class="calculator-container">
+                        <div class="calculator-form">
+                            <h2 data-translate="sip_calculator">SIP Calculator</h2>
+                            <div class="form-group">
+                                <label class="form-label" data-translate="monthly_investment">Monthly Investment (₹)</label>
+                                <input type="number" class="form-input" id="monthlyAmount" placeholder="5000">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label" data-translate="expected_return">Expected Annual Return (%)</label>
+                                <input type="number" class="form-input" id="expectedReturn" placeholder="12" step="0.1">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label" data-translate="investment_period">Investment Period (Years)</label>
+                                <input type="number" class="form-input" id="investmentPeriod" placeholder="10">
+                            </div>
+                            <button class="calculate-btn" onclick="calculateSIP()" data-translate="calculate">Calculate</button>
+                        </div>
+                        
+                        <div class="calculator-result">
+                            <h2 data-translate="results">Results</h2>
+                            <div class="result-card">
+                                <div class="result-value" id="totalValue">₹0</div>
+                                <div class="result-label" data-translate="maturity_value">Maturity Value</div>
+                            </div>
+                            <div class="result-card">
+                                <div class="result-value" id="totalInvested">₹0</div>
+                                <div class="result-label" data-translate="total_invested">Total Investment</div>
+                            </div>
+                            <div class="result-card">
+                                <div class="result-value" id="totalGains">₹0</div>
+                                <div class="result-label" data-translate="total_gains">Total Gains</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Investment Tips Section -->
+                <div id="tips-section" class="section hidden">
+                    <div class="tips-container">
+                        <div class="tip-card">
+                            <div class="tip-icon">
+                                <i class="fas fa-piggy-bank"></i>
+                            </div>
+                            <div class="tip-title" data-translate="start_early">Start Early</div>
+                            <div class="tip-content" data-translate="start_early_desc">The power of compounding works best when you start investing early. Even small amounts can grow significantly over time.</div>
+                        </div>
+                        
+                        <div class="tip-card">
+                            <div class="tip-icon">
+                                <i class="fas fa-chart-line"></i>
+                            </div>
+                            <div class="tip-title" data-translate="diversify">Diversify Your Portfolio</div>
+                            <div class="tip-content" data-translate="diversify_desc">Don't put all your eggs in one basket. Spread your investments across different asset classes to reduce risk.</div>
+                        </div>
+                        
+                        <div class="tip-card">
+                            <div class="tip-icon">
+                                <i class="fas fa-calendar-alt"></i>
+                            </div>
+                            <div class="tip-title" data-translate="regular_investment">Regular Investment</div>
+                            <div class="tip-content" data-translate="regular_investment_desc">Systematic Investment Plans (SIP) help you invest regularly and benefit from rupee cost averaging.</div>
+                        </div>
+                        
+                        <div class="tip-card">
+                            <div class="tip-icon">
+                                <i class="fas fa-shield-alt"></i>
+                            </div>
+                            <div class="tip-title" data-translate="emergency_fund">Emergency Fund</div>
+                            <div class="tip-content" data-translate="emergency_fund_desc">Maintain 6-12 months of expenses as emergency fund before starting investments.</div>
+                        </div>
+                        
+                        <div class="tip-card">
+                            <div class="tip-icon">
+                                <i class="fas fa-graduation-cap"></i>
+                            </div>
+                            <div class="tip-title" data-translate="educate_yourself">Keep Learning</div>
+                            <div class="tip-content" data-translate="educate_desc">Stay updated with financial markets and continue learning about investment strategies.</div>
+                        </div>
+                        
+                        <div class="tip-card">
+                            <div class="tip-icon">
+                                <i class="fas fa-hourglass-half"></i>
+                            </div>
+                            <div class="tip-title" data-translate="patience">Stay Patient</div>
+                            <div class="tip-content" data-translate="patience_desc">Successful investing requires patience. Avoid making emotional decisions based on short-term market fluctuations.</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Data Analysis Section -->
+                <!-- Analysis Section -->
+                <div id="analysis-section" class="section" style="max-width:600px; margin:auto; font-family: Arial, sans-serif;">
+                    <div
+                      class="upload-area"
+                      id="uploadArea"
+                      onclick="document.getElementById('fileInput').click()"
+                      style="border: 2px dashed #ccc; padding: 30px; border-radius: 10px; text-align: center; cursor: pointer; transition: border-color 0.3s ease;"
+                    >
+                      <i class="fas fa-cloud-upload-alt" style="font-size: 48px; color: #7A5AF8; margin-bottom: 20px;"></i>
+                      <h3 style="color:#333;">Upload Your Financial Data</h3>
+                      <p style="color:#555;">Drag and drop your Excel, CSV, or PDF files here, or click to browse</p>
+                      <input type="file" id="fileInput" accept=".csv,.xlsx,.xls,.pdf" style="display: none;" multiple />
+                    </div>
+                  
+                    <div
+  id="analysisResults"
+  class="hidden"
+  style="
+    margin-top: 30px;
+    border: 2px dashed #7A5AF8;
+    padding: 30px;
+    border-radius: 10px;
+    text-align: center;
+    color: white;
+    display: none;
+    min-height: 150px;
+    background-color: #1E2129; /* dark background */
+  "
+>
+  <h3 style="margin-bottom: 20px; color: white;">📊 Analysis Results</h3>
+  <div id="chartContainer" style="font-weight: 600; margin-bottom: 20px; color: white;"></div>
+  <div
+    id="groqSummary"
+    style="
+      background: rgba(122, 90, 248, 0.15);
+      padding: 15px;
+      border-radius: 10px;
+      box-shadow: inset 0 0 8px rgba(122, 90, 248, 0.3);
+      min-height: 100px;
+      color: white;
+      text-align: left;
+      overflow-wrap: break-word;
+      width: 100%;
+      box-sizing: border-box;
+    "
+  ></div>
+</div>
+
+                  
+                  
+                  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+                  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.10.377/pdf.min.js"></script>
+                  
+                  <script>
+                    const fileInput = document.getElementById("fileInput");
+                    const uploadArea = document.getElementById("uploadArea");
+                    const analysisResults = document.getElementById("analysisResults");
+                    const groqSummary = document.getElementById("groqSummary");
+                    const chartContainer = document.getElementById("chartContainer");
+                  
+                    uploadArea.addEventListener("dragover", (e) => {
+                      e.preventDefault();
+                      uploadArea.style.borderColor = "#7A5AF8";
+                    });
+                  
+                    uploadArea.addEventListener("dragleave", () => {
+                      uploadArea.style.borderColor = "#ccc";
+                    });
+                  
+                    uploadArea.addEventListener("drop", (e) => {
+                      e.preventDefault();
+                      uploadArea.style.borderColor = "#ccc";
+                      handleFiles(e.dataTransfer.files);
+                    });
+                  
+                    fileInput.addEventListener("change", (e) => handleFiles(e.target.files));
+                  
+                    function handleFiles(files) {
+                      if (!files.length) return;
+                      const file = files[0];
+                      const fileName = file.name.toLowerCase();
+                  
+                      if (fileName.endsWith(".csv") || fileName.endsWith(".xlsx") || fileName.endsWith(".xls")) {
+                        processExcelFile(file);
+                      } else if (fileName.endsWith(".pdf")) {
+                        processPDFFile(file);
+                      } else {
+                        alert("Unsupported file type. Please upload a CSV, Excel, or PDF file.");
+                      }
+                    }
+                  
+                    function processExcelFile(file) {
+                      const reader = new FileReader();
+                  
+                      reader.onload = async (e) => {
+                        const data = new Uint8Array(e.target.result);
+                        const workbook = XLSX.read(data, { type: "array" });
+                        const sheet = workbook.Sheets[workbook.SheetNames[0]];
+                        const jsonData = XLSX.utils.sheet_to_json(sheet, { header: 1 });
+                  
+                        analysisResults.style.display = "block";
+                        chartContainer.innerHTML = `<strong>📁 Loaded ${file.name}. Sending to AI for analysis...</strong>`;
+                        groqSummary.innerHTML = "";
+                  
+                        await getGROQSummary(JSON.stringify(jsonData.slice(0, 20)));
+                      };
+                  
+                      reader.readAsArrayBuffer(file);
+                    }
+                  
+                    function processPDFFile(file) {
+                      const reader = new FileReader();
+                  
+                      reader.onload = async function () {
+                        const typedarray = new Uint8Array(this.result);
+                  
+                        const pdf = await pdfjsLib.getDocument(typedarray).promise;
+                        let textContent = "";
+                  
+                        for (let i = 1; i <= pdf.numPages; i++) {
+                          const page = await pdf.getPage(i);
+                          const text = await page.getTextContent();
+                          const pageText = text.items.map((item) => item.str).join(" ");
+                          textContent += pageText + "\n";
+                        }
+                  
+                        analysisResults.style.display = "block";
+                        chartContainer.innerHTML = `<strong>📁 Loaded ${file.name}. Sending to AI for analysis...</strong>`;
+                        groqSummary.innerHTML = "";
+                  
+                        await getGROQSummary(textContent.slice(0, 5000)); // Limit to first 5000 chars
+                      };
+                  
+                      reader.readAsArrayBuffer(file);
+                    }
+                  
+                    async function getGROQSummary(content) {
+                      const prompt = `
+                  You are a financial market analyst. Analyze the following data and provide a summary of key insights, trends, unusual patterns, and relevant market context. Be clear, helpful, and insightful.
+                  
+                  Data Sample: ${content}
+                  `;
+                  
+                      try {
+                        const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+                          method: "POST",
+                          headers: {
+                            "Content-Type": "application/json",
+                            Authorization: "Bearer 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",
+                          },
+                          body: JSON.stringify({
+                            model: "llama3-8b-8192",
+                            messages: [
+                              { role: "system", content: "You are a professional financial market analyst." },
+                              { role: "user", content: prompt },
+                            ],
+                            temperature: 0.5,
+                          }),
+                        });
+                  
+                        if (!response.ok) {
+                          throw new Error(`HTTP error! status: ${response.status}`);
+                        }
+                  
+                        const result = await response.json();
+                        const summary = result.choices?.[0]?.message?.content || "⚠️ No summary returned.";
+                  
+                        groqSummary.innerHTML = `
+                              <h4 style="color:#7A5AF8;">🧠 AI Summary:</h4>
+                              <p>${summary.replace(/\n/g, "<br>")}</p>
+                          `;
+                        chartContainer.innerHTML = ""; // Clear loading text
+                      } catch (error) {
+                        console.error("❌ GROQ Error:", error);
+                        groqSummary.innerHTML = `<p style="color: red;"><strong>❌ Failed to fetch AI summary. Please try again later.</strong></p>`;
+                        chartContainer.innerHTML = "";
+                      }
+                    }
+                  </script>
+                  
+                  <!-- Add FontAwesome CDN for upload icon -->
+                  <link
+                    rel="stylesheet"
+                    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+                  />
+                  
+
+                <!-- Settings Section -->
+                <div id="settings-section" class="section">
+                    <div class="calculator-form">
+                        <h2 data-translate="settings">Settings</h2>
+                        
+                        <div class="form-group">
+                            <label class="form-label" data-translate="theme">Theme</label>
+                            <select class="form-input" id="themeSelector">
+                                <option value="dark" data-translate="dark">Dark</option>
+                                <option value="light" data-translate="light">Light</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="form-label" data-translate="currency">Currency</label>
+                            <select class="form-input" id="currencySelector">
+                                <option value="INR">Indian Rupee (₹)</option>
+                                <option value="USD">US Dollar ($)</option>
+                                <option value="EUR">Euro (€)</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="form-label" data-translate="notifications">Notifications</label>
+                            <div style="display: flex; align-items: center; gap: 12px;">
+                                <input type="checkbox" id="notificationsToggle" checked>
+                                <span data-translate="enable_notifications">Enable push notifications</span>
+                            </div>
+                        </div>
+                        
+                        <button class="calculate-btn" onclick="saveSettings()" data-translate="save_settings">Save Settings</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+
+        
+        // Global Variables
+        let currentLanguage = 'en';
+        let isRecording = false;
+        let recognition;
+        
+        // Language Translations
+        const translations = {
+            en: {
+                dashboard: "Dashboard",
+                chat: "AI Chat", 
+                calculators: "Calculators",
+                tips: "Investment Tips",
+                analysis: "Data Analysis",
+                settings: "Settings",
+                welcome: "Hi, I'm Your AI Coach",
+                subtitle: "Tell me your financial goal, and get complete learning plans.",
+                ai_chat: "AI Financial Advisor",
+                ai_chat_desc: "Get personalized financial advice from our intelligent AI coach",
+                calculators_desc: "Calculate SIP, EMI, tax savings and more with precision",
+                investment_tips: "Investment Insights",
+                tips_desc: "Expert tips and strategies for smart investing",
+                data_analysis: "Portfolio Analysis",
+                analysis_desc: "Upload and analyze your financial data with AI",
+                welcome_message: "Hello! I'm your AI financial coach. How can I help you achieve your financial goals today?",
+                sip_calculator: "SIP Calculator",
+                monthly_investment: "Monthly Investment (₹)",
+                expected_return: "Expected Annual Return (%)",
+                investment_period: "Investment Period (Years)",
+                calculate: "Calculate",
+                results: "Results",
+                maturity_value: "Maturity Value",
+                total_invested: "Total Investment",
+                total_gains: "Total Gains",
+                start_early: "Start Early",
+                start_early_desc: "The power of compounding works best when you start investing early. Even small amounts can grow significantly over time.",
+                diversify: "Diversify Your Portfolio",
+                diversify_desc: "Don't put all your eggs in one basket. Spread your investments across different asset classes to reduce risk.",
+                regular_investment: "Regular Investment",
+                regular_investment_desc: "Systematic Investment Plans (SIP) help you invest regularly and benefit from rupee cost averaging.",
+                emergency_fund: "Emergency Fund",
+                emergency_fund_desc: "Maintain 6-12 months of expenses as emergency fund before starting investments.",
+                educate_yourself: "Keep Learning",
+                educate_desc: "Stay updated with financial markets and continue learning about investment strategies.",
+                patience: "Stay Patient",
+                patience_desc: "Successful investing requires patience. Avoid making emotional decisions based on short-term market fluctuations.",
+                upload_data: "Upload Your Financial Data",
+                upload_desc: "Drag and drop your Excel or CSV files here, or click to browse",
+                analysis_results: "Analysis Results",
+                theme: "Theme",
+                dark: "Dark",
+                light: "Light",
+                currency: "Currency",
+                notifications: "Notifications",
+                enable_notifications: "Enable push notifications",
+                save_settings: "Save Settings"
+            },
+            hi: {
+                dashboard: "डैशबोर्ड",
+                chat: "AI चैट",
+                calculators: "कैलकुलेटर",
+                tips: "निवेश सुझाव",
+                analysis: "डेटा विश्लेषण",
+                settings: "सेटिंग्स",
+                welcome: "नमस्ते, मैं आपका AI कोच हूं",
+                subtitle: "मुझे अपना वित्तीय लक्ष्य बताएं, और पूरी योजना पाएं।",
+                ai_chat: "AI वित्तीय सलाहकार",
+                ai_chat_desc: "हमारे बुद्धिमान AI कोच से व्यक्तिगत वित्तीय सलाह पाएं",
+                welcome_message: "नमस्ते! मैं आपका AI वित्तीय कोच हूं। आज मैं आपके वित्तीय लक्ष्यों को पूरा करने में कैसे मदद कर सकता हूं?"
+            }
+        };
+
+        // Initialize App
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeApp();
+            setupEventListeners();
+            initializeSpeechRecognition();
+        });
+
+        function initializeApp() {
+            // Set initial language
+            updateLanguage();
+            
+            // Load user preferences
+            loadSettings();
+            
+            // Initialize chat
+            scrollToBottom();
+        }
+
+        function setupEventListeners() {
+            // Navigation
+            document.querySelectorAll('.nav-item').forEach(item => {
+                item.addEventListener('click', function() {
+                    const section = this.dataset.section;
+                    switchSection(section);
+                    
+                    // Update active nav item
+                    document.querySelectorAll('.nav-item').forEach(nav => nav.classList.remove('active'));
+                    this.classList.add('active');
+                });
+            });
+
+            // Chat input
+            const chatInput = document.getElementById('chatInput');
+            const sendBtn = document.getElementById('sendBtn');
+            
+            chatInput.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    sendMessage();
+                }
+            });
+            
+            chatInput.addEventListener('input', function() {
+                this.style.height = 'auto';
+                this.style.height = Math.min(this.scrollHeight, 120) + 'px';
+            });
+
+            sendBtn.addEventListener('click', sendMessage);
+
+            // Voice input
+            document.getElementById('voiceBtn').addEventListener('click', toggleVoiceRecognition);
+
+            // File upload
+            const uploadArea = document.getElementById('uploadArea');
+            const fileInput = document.getElementById('fileInput');
+
+            uploadArea.addEventListener('click', () => fileInput.click());
+            uploadArea.addEventListener('dragover', handleDragOver);
+            uploadArea.addEventListener('drop', handleFileDrop);
+            fileInput.addEventListener('change', handleFileSelect);
+
+            // Language selector
+            document.getElementById('languageSelector').addEventListener('change', function() {
+                currentLanguage = this.value;
+                updateLanguage();
+            });
+        }
+
+        function switchSection(sectionName) {
+            // Hide all sections
+            document.querySelectorAll('.section').forEach(section => {
+                section.classList.add('hidden');
+            });
+
+            // Show selected section
+            const targetSection = document.getElementById(sectionName + '-section');
+            if (targetSection) {
+                targetSection.classList.remove('hidden');
+                
+                // Special handling for chat section
+                if (sectionName === 'chat') {
+                    document.querySelector('.chat-container').style.display = 'flex';
+                    scrollToBottom();
+                }
+                
+                // Special handling for calculators
+                if (sectionName === 'calculators') {
+                    document.querySelector('.calculator-container').style.display = 'grid';
+                }
+                
+                // Special handling for tips
+                if (sectionName === 'tips') {
+                    document.querySelector('.tips-container').style.display = 'grid';
+                }
+            }
+        }
+
+        // Replace the existing sendMessage function with this:
+
+// Replace your existing sendMessage function with this fixed version
+async function sendMessage() {
+    const chatInput = document.getElementById('chatInput');
+    const message = chatInput.value.trim();
+    
+    if (!message) return;
+
+    // Add user message
+    addMessage(message, 'user');
+    chatInput.value = '';
+    chatInput.style.height = 'auto';
+
+    // Show typing indicator
+    showTypingIndicator();
+
+    try {
+        console.log('Sending message to Flask backend:', message);
+        
+        // Point to your Flask backend (adjust port if needed)
+        const response = await fetch('http://localhost:5000/chat', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                message: message,
+                session_id: generateSessionId(),
+                client_name: 'User',
+                client_age: '25',
+                language: currentLanguage || 'English'
+            })
+        });
+
+        if (!response.ok) {
+            throw new Error(`Flask server error: ${response.status} ${response.statusText}`);
+        }
+
+        const data = await response.json();
+        console.log('Flask backend response:', data);
+        
+        hideTypingIndicator();
+        
+        // Handle Flask response format
+        if (data.success && data.response) {
+            addMessage(data.response, 'assistant');
+        } else if (data.response) {
+            addMessage(data.response, 'assistant');
+        } else if (data.error) {
+            addMessage(`Backend Error: ${data.error}`, 'assistant');
+        } else {
+            addMessage('Sorry, I received an unexpected response format.', 'assistant');
+        }
+        
+    } catch (error) {
+        console.error('Error details:', error);
+        hideTypingIndicator();
+        
+        let errorMessage = 'Sorry, I encountered an error: ';
+        if (error.message.includes('Failed to fetch')) {
+            errorMessage += 'Cannot connect to Flask backend. Make sure your Flask server is running on http://localhost:5000';
+        } else if (error.message.includes('CORS')) {
+            errorMessage += 'CORS error. Add flask-cors to your Flask backend.';
+        } else {
+            errorMessage += error.message;
+        }
+        
+        addMessage(errorMessage, 'assistant');
+    }
+}
+
+// Helper function to generate session ID (keep this)
+function generateSessionId() {
+    return 'session_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+}
+
+// Helper function to generate session ID
+function generateSessionId() {
+    return 'session_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+}
+
+// Alternative implementation for different backend endpoints
+async function sendMessageToCustomEndpoint() {
+    const chatInput = document.getElementById('chatInput');
+    const message = chatInput.value.trim();
+    
+    if (!message) return;
+
+    addMessage(message, 'user');
+    chatInput.value = '';
+    chatInput.style.height = 'auto';
+    showTypingIndicator();
+
+    try {
+        // For Flask/Django backend
+        const response = await fetch('http://localhost:5000/chat', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json',
+                // Add CORS headers if needed
+                'Access-Control-Allow-Origin': '*'
+            },
+            body: JSON.stringify({
+                query: message,
+                user_id: getUserId(),
+                timestamp: new Date().toISOString()
+            })
+        });
+
+        const result = await response.json();
+        hideTypingIndicator();
+        
+        if (result.success) {
+            addMessage(result.data.response, 'assistant');
+        } else {
+            addMessage('Sorry, something went wrong: ' + result.error, 'assistant');
+        }
+        
+    } catch (error) {
+        console.error('Backend connection error:', error);
+        hideTypingIndicator();
+        addMessage('Unable to connect to server. Please check your connection.', 'assistant');
+    }
+}
+
+// For WebSocket implementation (real-time chat)
+function initializeWebSocket() {
+    const socket = new WebSocket('ws://localhost:8080/chat');
+    
+    socket.onopen = function(event) {
+        console.log('WebSocket connected');
+    };
+    
+    socket.onmessage = function(event) {
+        const data = JSON.parse(event.data);
+        hideTypingIndicator();
+        addMessage(data.response, 'assistant');
+    };
+    
+    socket.onerror = function(error) {
+        console.error('WebSocket error:', error);
+        hideTypingIndicator();
+        addMessage('Connection error occurred.', 'assistant');
+    };
+    
+    return socket;
+}
+
+// Modified sendMessage for WebSocket
+function sendMessageViaWebSocket(socket) {
+    const chatInput = document.getElementById('chatInput');
+    const message = chatInput.value.trim();
+    
+    if (!message) return;
+
+    addMessage(message, 'user');
+    chatInput.value = '';
+    chatInput.style.height = 'auto';
+    showTypingIndicator();
+
+    socket.send(JSON.stringify({
+        type: 'chat_message',
+        message: message,
+        language: currentLanguage,
+        timestamp: Date.now()
+    }));
+}
+
+// Error handling for different response formats
+function handleBackendResponse(response, data) {
+    hideTypingIndicator();
+    
+    // Handle different response structures
+    if (data.response) {
+        addMessage(data.response, 'assistant');
+    } else if (data.message) {
+        addMessage(data.message, 'assistant');
+    } else if (data.reply) {
+        addMessage(data.reply, 'assistant');
+    } else if (data.answer) {
+        addMessage(data.answer, 'assistant');
+    } else {
+        addMessage('Received an unexpected response format.', 'assistant');
+    }
+}
+
+// Configuration object for different backends
+const BACKEND_CONFIG = {
+    // Local development
+    development: {
+        baseUrl: 'http://localhost:5000',
+        chatEndpoint: '/api/chat',
+        headers: {
+            'Content-Type': 'application/json'
+        }
+    },
+    // Production
+    production: {
+        baseUrl: 'https://your-backend-domain.com',
+        chatEndpoint: '/api/v1/chat',
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer ' + getAuthToken()
+        }
+    }
+};
+
+// Get current environment config
+function getBackendConfig() {
+    const env = window.location.hostname === 'localhost' ? 'development' : 'production';
+    return BACKEND_CONFIG[env];
+}
+
+// Utility functions
+function getUserId() {
+    // Return user ID from localStorage, cookies, or generate new one
+    let userId = localStorage.getItem('userId');
+    if (!userId) {
+        userId = 'user_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+        localStorage.setItem('userId', userId);
+    }
+    return userId;
+}
+
+function getAuthToken() {
+    return localStorage.getItem('authToken') || '';
+}
+
+        function addMessage(text, sender) {
+            const chatMessages = document.getElementById('chatMessages');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${sender}`;
+
+            const avatar = document.createElement('div');
+            avatar.className = 'message-avatar';
+            avatar.innerHTML = sender === 'user' ? '<i class="fas fa-user"></i>' : '<i class="fas fa-robot"></i>';
+
+            const content = document.createElement('div');
+            content.className = 'message-content';
+
+            const messageText = document.createElement('div');
+            messageText.className = 'message-text';
+            messageText.textContent = text;
+
+            content.appendChild(messageText);
+            messageDiv.appendChild(avatar);
+            messageDiv.appendChild(content);
+
+            chatMessages.appendChild(messageDiv);
+            scrollToBottom();
+        }
+
+        function generateAIResponse(userMessage) {
+            const responses = [
+                "Based on your financial goals, I recommend starting with a diversified portfolio. Let me help you create a plan.",
+                "That's a great question! For long-term wealth building, consider SIP investments in equity mutual funds.",
+                "I understand your concern. Let's break down your financial situation and create a step-by-step plan.",
+                "Excellent! Here are some personalized recommendations based on your profile and goals.",
+                "Let me analyze your requirements and suggest the best investment options for you."
+            ];
+            
+            return responses[Math.floor(Math.random() * responses.length)];
+        }
+
+        function showTypingIndicator() {
+            const chatMessages = document.getElementById('chatMessages');
+            const typingDiv = document.createElement('div');
+            typingDiv.className = 'message assistant typing-indicator';
+            typingDiv.id = 'typingIndicator';
+
+            const avatar = document.createElement('div');
+            avatar.className = 'message-avatar';
+            avatar.innerHTML = '<i class="fas fa-robot"></i>';
+
+            const content = document.createElement('div');
+            content.className = 'message-content';
+
+            const typingDots = document.createElement('div');
+            typingDots.className = 'typing-dots';
+            typingDots.innerHTML = '<div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div>';
+
+            content.appendChild(typingDots);
+            typingDiv.appendChild(avatar);
+            typingDiv.appendChild(content);
+
+            chatMessages.appendChild(typingDiv);
+            scrollToBottom();
+        }
+
+        function hideTypingIndicator() {
+            const typingIndicator = document.getElementById('typingIndicator');
+            if (typingIndicator) {
+                typingIndicator.remove();
+            }
+        }
+
+        function scrollToBottom() {
+            const chatMessages = document.getElementById('chatMessages');
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        function calculateSIP() {
+            const monthlyAmount = parseFloat(document.getElementById('monthlyAmount').value) || 0;
+            const expectedReturn = parseFloat(document.getElementById('expectedReturn').value) || 0;
+            const investmentPeriod = parseFloat(document.getElementById('investmentPeriod').value) || 0;
+
+            if (monthlyAmount <= 0 || expectedReturn <= 0 || investmentPeriod <= 0) {
+                alert('Please enter valid values for all fields');
+                return;
+            }
+
+            const monthlyRate = expectedReturn / 12 / 100;
+            const totalMonths = investmentPeriod * 12;
+            
+            const maturityValue = monthlyAmount * (((1 + monthlyRate) ** totalMonths - 1) / monthlyRate) * (1 + monthlyRate);
+            const totalInvested = monthlyAmount * totalMonths;
+            const totalGains = maturityValue - totalInvested;
+
+            document.getElementById('totalValue').textContent = `₹${formatNumber(Math.round(maturityValue))}`;
+            document.getElementById('totalInvested').textContent = `₹${formatNumber(Math.round(totalInvested))}`;
+            document.getElementById('totalGains').textContent = `₹${formatNumber(Math.round(totalGains))}`;
+        }
+
+        function formatNumber(num) {
+            return new Intl.NumberFormat('en-IN').format(num);
+        }
+
+        function initializeSpeechRecognition() {
+            if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+                recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
+                recognition.continuous = false;
+                recognition.interimResults = false;
+                recognition.lang = currentLanguage === 'hi' ? 'hi-IN' : 'en-US';
+
+                recognition.onresult = function(event) {
+                    const transcript = event.results[0][0].transcript;
+                    document.getElementById('chatInput').value = transcript;
+                };
+
+                recognition.onend = function() {
+                    isRecording = false;
+                    document.getElementById('voiceBtn').classList.remove('recording');
+                };
+            }
+        }
+
+        function toggleVoiceRecognition() {
+            if (!recognition) {
+                alert('Speech recognition not supported in this browser');
+                return;
+            }
+
+            if (isRecording) {
+                recognition.stop();
+            } else {
+                recognition.start();
+                isRecording = true;
+                document.getElementById('voiceBtn').classList.add('recording');
+            }
+        }
+
+        function handleDragOver(e) {
+            e.preventDefault();
+            e.currentTarget.classList.add('dragover');
+        }
+
+        function handleFileDrop(e) {
+            e.preventDefault();
+            e.currentTarget.classList.remove('dragover');
+            const files = e.dataTransfer.files;
+            processFiles(files);
+        }
+
+        function handleFileSelect(e) {
+            const files = e.target.files;
+            processFiles(files);
+        }
+
+        function processFiles(files) {
+            Array.from(files).forEach(file => {
+                if (file.type.includes('csv') || file.type.includes('sheet')) {
+                    console.log('Processing file:', file.name);
+                    // Here you would implement actual file processing
+                    showAnalysisResults();
+                }
+            });
+        }
+
+        function showAnalysisResults() {
+            document.getElementById('analysisResults').classList.remove('hidden');
+            // Simulate analysis results
+            setTimeout(() => {
+                alert('File analysis complete! Check the results below.');
+            }, 1000);
+        }
+
+        function updateLanguage() {
+            const elements = document.querySelectorAll('[data-translate]');
+            elements.forEach(element => {
+                const key = element.getAttribute('data-translate');
+                if (translations[currentLanguage] && translations[currentLanguage][key]) {
+                    if (element.tagName === 'INPUT' && element.type === 'text') {
+                        element.placeholder = translations[currentLanguage][key];
+                    } else {
+                        element.textContent = translations[currentLanguage][key];
+                    }
+                }
+            });
+        }
+
+        function loadSettings() {
+            // Load settings from localStorage if available
+            const savedTheme = localStorage.getItem('theme') || 'dark';
+            const savedCurrency = localStorage.getItem('currency') || 'INR';
+            const savedNotifications = localStorage.getItem('notifications') !== 'false';
+
+            document.getElementById('themeSelector').value = savedTheme;
+            document.getElementById('currencySelector').value = savedCurrency;
+            document.getElementById('notificationsToggle').checked = savedNotifications;
+        }
+
+        function saveSettings() {
+            const theme = document.getElementById('themeSelector').value;
+            const currency = document.getElementById('currencySelector').value;
+            const notifications = document.getElementById('notificationsToggle').checked;
+
+            try {
+                localStorage.setItem('theme', theme);
+                localStorage.setItem('currency', currency);
+                localStorage.setItem('notifications', notifications.toString());
+                alert('Settings saved successfully!');
+            } catch(e) {
+                // Fallback for environments where localStorage isn't available
+                alert('Settings saved for this session!');
+            }
+        }
+
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            sidebar.classList.toggle('open');
+        }
+
+        // Feature card interactions
+        document.addEventListener('click', function(e) {
+            if (e.target.closest('.feature-card')) {
+                const card = e.target.closest('.feature-card');
+                card.style.transform = 'scale(0.98)';
+                setTimeout(() => {
+                    card.style.transform = '';
+                }, 150);
+            }
+        });
+    </script>
+</body>
+</html>
